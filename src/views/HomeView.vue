@@ -1,9 +1,21 @@
 <script setup>
 import { reactive, ref } from 'vue'
 import * as Tone from 'tone'
-import play from '../assets/svg/play.svg'
+import playSVG from '../assets/svg/play.svg'
+import pauseSVG from '../assets/svg/pause.svg'
+import randomSVG from '../assets/svg/random.svg'
+import plusSVG from '../assets/svg/plus.svg'
+import minusSVG from '../assets/svg/minus.svg'
 
 const BPM=ref(120)
+const isPlaying=ref(false)
+const defaultSequencer =reactive({
+    drum: {
+      kick: new Array(16),
+      hihat: new Array(16),
+    }
+  }) 
+
 
 const kick = new Tone.MembraneSynth({
   octaves: 3,
@@ -19,12 +31,6 @@ const hihat = new Tone.NoiseSynth({
   }
 }).toDestination();
 
-const defaultSequencer =reactive({
-    drum: {
-      kick: new Array(16),
-      hihat: new Array(16),
-    }
-  }) 
 
   const togglekick=(index)=>{
     defaultSequencer.drum.kick[index]= !defaultSequencer.drum.kick[index]
@@ -34,20 +40,62 @@ const defaultSequencer =reactive({
   defaultSequencer.drum.hihat[index] = !defaultSequencer.drum.hihat[index]
 }
 
-Tone.Transport.scheduleRepeat((time)=>{
-  let i = Math.round(Tone.Transport.getSecondsAtTime() * (BPM.value / 60) % 16)  
+const getRandomArray=(length)=>{
+  return new Array(length).fill(0).map(()=>Math.random()>0.80)
+}
 
-  if(kick[i]) kick.triggerAttackRelease("C2", "4n" ,time)
-  if(hihat[i]) hihat.triggerAttackRelease("8n", time)
-},"4n")
+const getRandomMusic=()=>{
+  defaultSequencer.drum={
+    kick:getRandomArray(16),
+    hihat:getRandomArray(16)
+  }
+}
+
+const minusBPM=()=>{
+  if(BPM.value<=60) return BPM.value=60
+  BPM.value-=5
+}
+
+const plusBPM = () => {
+  if (BPM.value >=180) return BPM.value = 180
+  BPM.value += 5
+}
+
+const playMusic=()=>{
+  Tone.start()
+  isPlaying.value=!isPlaying.value
+  if(isPlaying.value){
+    Tone.Transport.clear()
+    Tone.Transport.scheduleRepeat((time) => {
+      let i = Math.round(Tone.Transport.getSecondsAtTime() * (BPM.value / 60) % 16)
+      if (defaultSequencer.drum.kick[i]) kick.triggerAttackRelease("C2", "4n", time) 
+      if (defaultSequencer.drum.hihat[i]) hihat.triggerAttackRelease("8n", time)
+    }, "4n")
+    Tone.Transport.start()
+  }else{
+    Tone.Transport.stop()
+  }
+  
+}
 
 </script>
 
 <template>
   <div class="container">
     <div class="">
-      <button>
-        <img :src="play" alt="playSVG">
+      <button @click="getRandomMusic">
+        <img :src="randomSVG" alt="randomSVG">
+      </button>
+      <button @click="playMusic">
+        <img v-if="!isPlaying" :src="playSVG" alt="playSVG">
+        <img v-if="isPlaying" :src="pauseSVG" alt="pauseSVG">
+      </button>
+      <button @click="minusBPM">
+        <img :src="minusSVG" alt="minusSVG">
+      </button>
+      <span>{{ BPM }}bpm</span>
+      <button @click="plusBPM">
+        <img :src="plusSVG" alt="plusSVG">
       </button>
     </div>
     <div class="kick">
