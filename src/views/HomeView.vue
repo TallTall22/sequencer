@@ -6,9 +6,11 @@ import pauseSVG from '../assets/svg/pause.svg'
 import randomSVG from '../assets/svg/random.svg'
 import plusSVG from '../assets/svg/plus.svg'
 import minusSVG from '../assets/svg/minus.svg'
+import deleteSVG from '../assets/svg/delete.svg'
 
 const BPM=ref(120)
 const isPlaying=ref(false)
+const currentIndex=ref('')
 const defaultSequencer =reactive({
     drum: {
       kick: new Array(16),
@@ -51,6 +53,13 @@ const getRandomMusic=()=>{
   }
 }
 
+const getResetMusic = () => {
+  defaultSequencer.drum = {
+    kick: new Array(16),
+    hihat: new Array(16)
+  }
+}
+
 const minusBPM=()=>{
   if(BPM.value<=60) return BPM.value=60
   BPM.value-=5
@@ -67,7 +76,10 @@ const playMusic=()=>{
   if(isPlaying.value){
     Tone.Transport.clear()
     Tone.Transport.scheduleRepeat((time) => {
+      Tone.Transport.bpm.value = BPM.value
       let i = Math.round(Tone.Transport.getSecondsAtTime() * (BPM.value / 60) % 16)
+      i=i%16
+      currentIndex.value=i
       if (defaultSequencer.drum.kick[i]) kick.triggerAttackRelease("C2", "4n", time) 
       if (defaultSequencer.drum.hihat[i]) hihat.triggerAttackRelease("8n", time)
     }, "4n")
@@ -97,8 +109,16 @@ const playMusic=()=>{
       <button @click="plusBPM">
         <img :src="plusSVG" alt="plusSVG">
       </button>
+      <button @click="getResetMusic">
+        <img :src="deleteSVG" alt="deleteSVG">
+      </button>
     </div>
-    <div class="kick">
+    <div class="">
+      <div class="timeLine">
+        <div v-for="i in 16" :key="`index_${i}`" :class="{ 'time': true, 'active': currentIndex ===i-1 }" >
+        </div>
+      </div>
+      <div class="kick">
       <div v-for="(active,index) in defaultSequencer.drum.kick" :key="index" :class="{ 'item': true, 'active': active }"
         @click="togglekick(index)">
       </div>
@@ -108,11 +128,26 @@ const playMusic=()=>{
       @click="toggleHihat(index)">
       </div>
     </div>
+    </div>
   </div>
   
 </template>
 <style lang="scss" scoped>
   .container{
+    .timeLine{
+      height: 3vh;
+      display: flex;
+      justify-content:space-around ;
+      align-items: center;
+      .time{
+        width: 100%;
+        height: 100%;
+        border: 1px solid #000;
+        &.active{
+          background-color: #09de37;
+        }
+      }
+    }
     .kick,
     .hihat{
       height: 30vh;
