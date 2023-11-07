@@ -7,13 +7,10 @@ import randomSVG from '../assets/svg/random.svg'
 import plusSVG from '../assets/svg/plus.svg'
 import minusSVG from '../assets/svg/minus.svg'
 import deleteSVG from '../assets/svg/delete.svg'
-import drumSVG from '../assets/svg/drum.svg'
-import musicSVG from '../assets/svg/music.svg'
 
 const BPM=ref(120)
 const isPlaying=ref(false)
 const currentIndex=ref(0)
-const mode=ref('drum')
 const defaultSequencer =reactive({
     drum: {
       kick: new Array(16),
@@ -22,9 +19,6 @@ const defaultSequencer =reactive({
       tomL: new Array(16),
       tomH: new Array(16),
       triangleBell: new Array(16),
-    },
-    lead:{
-      synth:new Array(16)
     }
   }) 
 
@@ -42,7 +36,6 @@ const hihat = new Tone.NoiseSynth({
     sustain: 0.0001,
   }
 }).toDestination();
-
 
 const lowPass = new Tone.Filter({
   frequency: 11000, 
@@ -116,26 +109,7 @@ const triangleBell = new Tone.MetalSynth({
   modulationIndex: 15,
 }).toDestination();
 
-const synthL=new Tone.Synth({
-	"portamento": 0.05,
-	"envelope": {
-		"attack": 0.05,
-		"attackCurve": "exponential",
-		"decay": 0.2,
-		"decayCurve": "exponential",
-		"release": 1.5,
-		"releaseCurve": "exponential",
-		"sustain": 0.2
-	},
-	"oscillator": {
-		"partialCount": 0,
-		"partials": [],
-		"phase": 0,
-		"type": "amtriangle",
-		"harmonicity": 0.5,
-		"modulationType": "sine"
-	}
-})
+
 
   const togglekick=(index)=>{
     defaultSequencer.drum.kick[index]= !defaultSequencer.drum.kick[index]
@@ -159,14 +133,6 @@ const toggleTriangleBell = (index) => {
 
 const toggleTomH = (index) => {
   defaultSequencer.drum.tomH[index] = !defaultSequencer.drum.tomH[index]
-}
-
-const changeMode=()=>{
-  if(mode.value==='drum'){
-    mode.value='music'
-  }else{
-    mode.value='drum'
-  }
 }
 
 const getRandomArray=(length)=>{
@@ -213,16 +179,18 @@ const playMusic=()=>{
     Tone.Transport.scheduleRepeat((time) => {
       Tone.Transport.bpm.value = BPM.value
       let i = Math.round(Tone.Transport.getSecondsAtTime() * (BPM.value / 60)*2 % 16)
+      let index=i
+      index=++index%16
       i=i%16
-      currentIndex.value=i
-      console.log(i)
-      if (defaultSequencer.drum.kick[i]) kick.triggerAttackRelease("C2", "8n", time) 
-      if (defaultSequencer.drum.hihat[i]) hihat.triggerAttackRelease("16n", time)
-      if (defaultSequencer.drum.snare[i]) trigger(time)
-      if (defaultSequencer.drum.tomL[i]) tomL.triggerAttackRelease("G2", "8n", time)
-      if (defaultSequencer.drum.tomL[i]) tomH.triggerAttackRelease("G2", "8n", time)
-      if (defaultSequencer.drum.triangleBell[i]) triangleBell.triggerAttackRelease("c2", "8n", time)
-      if (defaultSequencer.lead.synth[i]) synthL.triggerAttackRelease("c2", "8n", time)
+      currentIndex.value=index
+      console.log(index)
+      if (defaultSequencer.drum.kick[index]) kick.triggerAttackRelease("C2", "8n", time) 
+      if (defaultSequencer.drum.hihat[index]) hihat.triggerAttackRelease("16n", time)
+      if (defaultSequencer.drum.snare[index]) trigger(time)
+      if (defaultSequencer.drum.tomL[index]) tomL.triggerAttackRelease("G2", "8n", time)
+      if (defaultSequencer.drum.tomH[index]) tomH.triggerAttackRelease("G2", "8n", time)
+      if (defaultSequencer.drum.triangleBell[index]) triangleBell.triggerAttackRelease("c2", "8n", time)
+
     }, "8n")
     Tone.Transport.start()
   }else{
@@ -236,10 +204,6 @@ const playMusic=()=>{
 <template>
   <div class="container">
     <div class="button-wrapper">
-      <button @click="changeMode">
-        <img v-if="mode==='music'" :src="drumSVG" alt="drumSVG">
-        <img v-if="mode==='drum'" :src="musicSVG" alt="musicSVG">
-      </button>
       <button @click="getRandomMusic">
         <img :src="randomSVG" alt="randomSVG">
       </button>
