@@ -183,7 +183,6 @@ const playMusic=()=>{
       index=++index%16
       i=i%16
       currentIndex.value=index
-      console.log(index)
       if (defaultSequencer.drum.kick[index]) kick.triggerAttackRelease("C2", "8n", time) 
       if (defaultSequencer.drum.hihat[index]) hihat.triggerAttackRelease("16n", time)
       if (defaultSequencer.drum.snare[index]) trigger(time)
