@@ -20,7 +20,7 @@ const defaultSequencer = reactive({
     tomL: new Array(16),
     tomH: new Array(16),
     triangleBell: new Array(16),
-  },
+  }
 }) // 定義defaultSequencer，包含各種打擊樂器的節拍序列，初始為空序列
 
 // 定義不同樂器的聲音合成器
