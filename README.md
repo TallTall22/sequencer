@@ -78,6 +78,10 @@ control + c
 
 <br>
 <br>
+
+#  Demo
+
+![音序機](https://github.com/TallTall22/sequencer/blob/main/public/image/demo-1.png)
 ---
 
 
